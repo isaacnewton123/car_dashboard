@@ -33,6 +33,7 @@ dependencies:
   syncfusion_flutter_gauges: any
   hugeicons: any
   installed_apps: ^2.1.1
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -51,3 +52,4 @@ flutter:
   assets:
     - assets/img/
     - assets/images/
+    - assets/sound/

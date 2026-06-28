@@ -257,34 +257,6 @@ class _HomeShellState extends State<HomeShell> {
                 ),
               ),
             ),
-            // ── Floating Menu Button (Only to SHOW) ──
-            if (!_isUiVisible)
-              Positioned(
-                left: 24,
-                bottom: 24,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _isUiVisible = true;
-                    });
-                    _startHideTimer();
-                  },
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: AppTheme.glassFill,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppTheme.glassBorder),
-                  ),
-                  child: Icon(
-                    _isUiVisible ? Icons.keyboard_arrow_down_rounded : Icons.menu_rounded,
-                    color: AppTheme.accentCyan,
-                    size: 32,
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),

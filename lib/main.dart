@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/dashboard_provider.dart';
-import 'screens/home_shell.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,7 +33,7 @@ class CarDashboardApp extends StatelessWidget {
         title: 'Car Dashboard',
         debugShowCheckedModeBanner: false,
         theme: _buildDarkTheme(),
-        home: const HomeShell(),
+        home: const SplashScreen(),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
@@ -25,50 +26,292 @@ class DashboardPage extends StatelessWidget {
               child: Container(
                 color: const Color(0xFF27282A).withValues(alpha: 0.5),
                 child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final double gaugeSize = min(constraints.maxHeight * 0.60, constraints.maxWidth * 0.30);
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Center Left: RPM Gauge
-                      SizedBox(
-                        width: gaugeSize,
-                        height: gaugeSize,
-                        child: _RpmGauge(rpm: p.rpm),
-                      ).animate().fadeIn(duration: 800.ms, curve: Curves.easeOut),
-
-                      // Center: Car Image
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                        child: SizedBox(
-                          width: constraints.maxWidth * 0.18,
-                          child: Image.asset(
-                            'assets/img/sigra.png',
-                            fit: BoxFit.contain,
-                          ).animate().fadeIn(duration: 800.ms, delay: 200.ms),
-                        ),
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    final double gaugeSize = min(
+                      constraints.maxHeight * 0.55,
+                      constraints.maxWidth * 0.25,
+                    );
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32.0,
+                        vertical: 16.0,
                       ),
+                      child: Column(
+                        children: [
+                          // ── Top Row: Gauges + Car ──
+                          Expanded(
+                            flex: 6,
+                            child: Row(
+                              children: [
+                                // Left info cards
+                                Expanded(
+                                  flex: 2,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _InfoCard(
+                                        hugeIcon: HugeIcons.strokeRoundedThermometer,
+                                        label: 'COOLANT',
+                                        value: '${p.coolantTemp}°C',
+                                        valueColor: p.coolantTemp > 95
+                                            ? AppTheme.alertRed
+                                            : p.coolantTemp > 85
+                                                ? AppTheme.alertAmber
+                                                : AppTheme.accentCyan,
+                                      ).animate().fadeIn(duration: 600.ms, delay: 100.ms),
+                                      const SizedBox(height: 12),
+                                      _InfoCard(
+                                        hugeIcon: HugeIcons.strokeRoundedFuelStation,
+                                        label: 'FUEL',
+                                        value: '${p.fuelLevel}%',
+                                        valueColor: p.fuelLevel < 20
+                                            ? AppTheme.alertRed
+                                            : AppTheme.successGreen,
+                                      ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
+                                      const SizedBox(height: 12),
+                                      _InfoCard(
+                                        hugeIcon: HugeIcons.strokeRoundedBatteryFull,
+                                        label: 'BATTERY',
+                                        value: '${p.batteryVoltage.toStringAsFixed(1)}V',
+                                        valueColor: p.batteryVoltage < 12.0
+                                            ? AppTheme.alertRed
+                                            : AppTheme.accentCyan,
+                                      ).animate().fadeIn(duration: 600.ms, delay: 300.ms),
+                                    ],
+                                  ),
+                                ),
 
-                      // Center Right: Speed Gauge
-                      SizedBox(
-                        width: gaugeSize,
-                        height: gaugeSize,
-                        child: _SpeedGauge(
-                          speed: p.displaySpeed,
-                          speedUnit: p.speedUnit.label,
-                        ),
-                      ).animate().fadeIn(duration: 800.ms, curve: Curves.easeOut),
-                    ],
-                  ),
+                                // RPM Gauge
+                                SizedBox(
+                                  width: gaugeSize,
+                                  height: gaugeSize,
+                                  child: _RpmGauge(rpm: p.rpm),
+                                ).animate().fadeIn(duration: 800.ms, curve: Curves.easeOut),
+
+                                // Center: Car + Gear
+                                Expanded(
+                                  flex: 2,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // OBD-II Connection Status
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: p.isConnected
+                                                ? AppTheme.successGreen.withValues(alpha: 0.3)
+                                                : AppTheme.alertRed.withValues(alpha: 0.3),
+                                          ),
+                                          borderRadius: BorderRadius.circular(12),
+                                          color: AppTheme.glassFill,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: p.isConnected
+                                                    ? AppTheme.successGreen
+                                                    : AppTheme.alertRed,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: (p.isConnected
+                                                            ? AppTheme.successGreen
+                                                            : AppTheme.alertRed)
+                                                        .withValues(alpha: 0.5),
+                                                    blurRadius: 6,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              p.isConnected ? 'OBD-II LINKED' : 'DISCONNECTED',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w700,
+                                                color: p.isConnected
+                                                    ? AppTheme.successGreen
+                                                    : AppTheme.alertRed,
+                                                letterSpacing: 1.5,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
+                                      const SizedBox(height: 12),
+                                      // Car image
+                                      SizedBox(
+                                        width: constraints.maxWidth * 0.15,
+                                        child: Image.asset(
+                                          'assets/img/sigra.png',
+                                          fit: BoxFit.contain,
+                                        ).animate().fadeIn(duration: 800.ms, delay: 200.ms),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      // Engine load bar
+                                      SizedBox(
+                                        width: constraints.maxWidth * 0.12,
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  'ENGINE LOAD',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppTheme.textSecondary,
+                                                    letterSpacing: 1.5,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  '${p.engineLoad}%',
+                                                  style: GoogleFonts.montserrat(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: AppTheme.textPrimary,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: LinearProgressIndicator(
+                                                value: p.engineLoad / 100.0,
+                                                minHeight: 5,
+                                                backgroundColor:
+                                                    AppTheme.surfaceLight,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<Color>(
+                                                  p.engineLoad > 80
+                                                      ? AppTheme.alertRed
+                                                      : p.engineLoad > 50
+                                                          ? AppTheme.alertAmber
+                                                          : AppTheme.accentCyan,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ).animate().fadeIn(duration: 600.ms, delay: 400.ms),
+                                    ],
+                                  ),
+                                ),
+
+                                // Speed Gauge
+                                SizedBox(
+                                  width: gaugeSize,
+                                  height: gaugeSize,
+                                  child: _SpeedGauge(
+                                    speed: p.displaySpeed,
+                                    speedUnit: p.speedUnit.label,
+                                  ),
+                                ).animate().fadeIn(duration: 800.ms, curve: Curves.easeOut),
+
+                                // Right info cards
+                                Expanded(
+                                  flex: 2,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _InfoCard(
+                                        materialIcon: Icons.speed_rounded,
+                                        label: 'THROTTLE',
+                                        value: '${p.throttlePosition}%',
+                                        valueColor: AppTheme.accentCyan,
+                                      ).animate().fadeIn(duration: 600.ms, delay: 100.ms),
+                                      const SizedBox(height: 12),
+                                      _InfoCard(
+                                        materialIcon: Icons.air_rounded,
+                                        label: 'INTAKE AIR',
+                                        value: '${p.intakeAirTemp}°C',
+                                        valueColor: AppTheme.accentCyan,
+                                      ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
+                                      const SizedBox(height: 12),
+                                      _InfoCard(
+                                        materialIcon: Icons.compress_rounded,
+                                        label: 'MAP',
+                                        value: '${p.mapPressure} kPa',
+                                        valueColor: AppTheme.accentCyan,
+                                      ).animate().fadeIn(duration: 600.ms, delay: 300.ms),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // ── Bottom: Quote + Quick Stats ──
+                          Expanded(
+                            flex: 2,
+                            child: Row(
+                              children: [
+                                // Quote card
+                                Expanded(
+                                  flex: 3,
+                                  child: _QuoteCard().animate().fadeIn(
+                                        duration: 800.ms,
+                                        delay: 500.ms,
+                                      ),
+                                ),
+                                const SizedBox(width: 16),
+                                // Fuel rate
+                                Expanded(
+                                  flex: 2,
+                                  child: _StatTile(
+                                    icon: HugeIcons.strokeRoundedFlash,
+                                    label: 'FUEL RATE',
+                                    value: '${p.fuelRate.toStringAsFixed(1)} L/h',
+                                    accent: AppTheme.alertAmber,
+                                  ).animate().fadeIn(duration: 600.ms, delay: 500.ms),
+                                ),
+                                const SizedBox(width: 16),
+                                // O2 Sensor
+                                Expanded(
+                                  flex: 2,
+                                  child: _StatTile(
+                                    icon: HugeIcons.strokeRoundedFlash,
+                                    label: 'O₂ SENSOR',
+                                    value:
+                                        '${p.o2SensorVoltage.toStringAsFixed(2)}V',
+                                    accent: AppTheme.successGreen,
+                                  ).animate().fadeIn(duration: 600.ms, delay: 600.ms),
+                                ),
+                                const SizedBox(width: 16),
+                                // Fuel Trim
+                                Expanded(
+                                  flex: 2,
+                                  child: _StatTile(
+                                    icon: HugeIcons.strokeRoundedSettings01,
+                                    label: 'FUEL TRIM',
+                                    value:
+                                        '${p.fuelTrim >= 0 ? '+' : ''}${p.fuelTrim.toStringAsFixed(1)}%',
+                                    accent: p.fuelTrim.abs() > 10
+                                        ? AppTheme.alertRed
+                                        : AppTheme.accentCyan,
+                                  ).animate().fadeIn(duration: 600.ms, delay: 700.ms),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          ),
-          ),
+              ),
+            ),
           ),
         );
       },
@@ -76,9 +319,172 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
+// =============================================================================
+// Quote Card
+// =============================================================================
+
+class _QuoteCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.glassFill,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.glassBorder),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.format_quote_rounded,
+            color: AppTheme.accentCyan.withValues(alpha: 0.4),
+            size: 18,
+          ),
+          const SizedBox(height: 4),
+          Flexible(
+            child: Text(
+              '"What we know is just a drop in the ocean; what we don\'t know is an ocean."',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                fontStyle: FontStyle.italic,
+                color: AppTheme.textPrimary.withValues(alpha: 0.85),
+                height: 1.4,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '— Sir Isaac Newton',
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.accentCyan,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Info Card — Small glassmorphic card for side panels
+// =============================================================================
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({
+    this.hugeIcon,
+    this.materialIcon,
+    required this.label,
+    required this.value,
+    required this.valueColor,
+  }) : assert(hugeIcon != null || materialIcon != null);
+
+  final List<List<dynamic>>? hugeIcon;
+  final IconData? materialIcon;
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 120, // fixed width to keep them even and short
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.glassFill,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.glassBorder),
+      ),
+      child: Row(
+        children: [
+          hugeIcon != null
+              ? HugeIcon(icon: hugeIcon!, color: AppTheme.textSecondary, size: 16)
+              : Icon(materialIcon!, color: AppTheme.textSecondary, size: 16),
+          const Spacer(),
+          Text(
+            value,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: valueColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Stat Tile — Bottom bar stat cards
+// =============================================================================
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
+
+  final List<List<dynamic>> icon;
+  final String label;
+  final String value;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.glassFill,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.glassBorder),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          HugeIcon(icon: icon, color: accent, size: 22),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.montserrat(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textSecondary,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// RPM Gauge
+// =============================================================================
+
 class _RpmGauge extends StatelessWidget {
   const _RpmGauge({required this.rpm});
-  
+
   final int rpm;
 
   @override
@@ -97,10 +503,18 @@ class _RpmGauge extends StatelessWidget {
           axisLineStyle: const AxisLineStyle(
             thickness: 0.1,
             thicknessUnit: GaugeSizeUnit.factor,
-            color: Color(0xFF1A1A1A), // Dark track
+            color: Color(0xFF1A1A1A),
           ),
-          majorTickStyle: const MajorTickStyle(length: 10, thickness: 2, color: Colors.grey),
-          minorTickStyle: const MinorTickStyle(length: 5, thickness: 1, color: Colors.grey),
+          majorTickStyle: const MajorTickStyle(
+            length: 10,
+            thickness: 2,
+            color: Colors.grey,
+          ),
+          minorTickStyle: const MinorTickStyle(
+            length: 5,
+            thickness: 1,
+            color: Colors.grey,
+          ),
           axisLabelStyle: const GaugeTextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -112,7 +526,11 @@ class _RpmGauge extends StatelessWidget {
               width: 0.1,
               sizeUnit: GaugeSizeUnit.factor,
               gradient: const SweepGradient(
-                colors: <Color>[AppTheme.accentCyan, AppTheme.accentBlue, AppTheme.alertRed],
+                colors: <Color>[
+                  AppTheme.accentCyan,
+                  AppTheme.accentBlue,
+                  AppTheme.alertRed,
+                ],
                 stops: <double>[0.0, 0.7, 1.0],
               ),
               cornerStyle: CornerStyle.bothCurve,
@@ -128,7 +546,7 @@ class _RpmGauge extends StatelessWidget {
                   Text(
                     (rpm / 1000.0).toStringAsFixed(1),
                     style: GoogleFonts.montserrat(
-                      fontSize: 56,
+                      fontSize: 48,
                       fontWeight: FontWeight.w300,
                       color: Colors.white,
                       height: 1.0,
@@ -138,7 +556,7 @@ class _RpmGauge extends StatelessWidget {
                   Text(
                     'RPM x1000',
                     style: GoogleFonts.inter(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.accentCyan,
                       letterSpacing: 2,
@@ -146,20 +564,24 @@ class _RpmGauge extends StatelessWidget {
                   ),
                 ],
               ),
-            )
+            ),
           ],
-        )
+        ),
       ],
     );
   }
 }
+
+// =============================================================================
+// Speed Gauge
+// =============================================================================
 
 class _SpeedGauge extends StatelessWidget {
   const _SpeedGauge({
     required this.speed,
     required this.speedUnit,
   });
-  
+
   final int speed;
   final String speedUnit;
 
@@ -179,10 +601,18 @@ class _SpeedGauge extends StatelessWidget {
           axisLineStyle: const AxisLineStyle(
             thickness: 0.1,
             thicknessUnit: GaugeSizeUnit.factor,
-            color: Color(0xFF1A1A1A), // Dark track
+            color: Color(0xFF1A1A1A),
           ),
-          majorTickStyle: const MajorTickStyle(length: 10, thickness: 2, color: Colors.grey),
-          minorTickStyle: const MinorTickStyle(length: 5, thickness: 1, color: Colors.grey),
+          majorTickStyle: const MajorTickStyle(
+            length: 10,
+            thickness: 2,
+            color: Colors.grey,
+          ),
+          minorTickStyle: const MinorTickStyle(
+            length: 5,
+            thickness: 1,
+            color: Colors.grey,
+          ),
           axisLabelStyle: const GaugeTextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -194,7 +624,11 @@ class _SpeedGauge extends StatelessWidget {
               width: 0.1,
               sizeUnit: GaugeSizeUnit.factor,
               gradient: const SweepGradient(
-                colors: <Color>[AppTheme.successGreen, AppTheme.alertAmber, AppTheme.alertRed],
+                colors: <Color>[
+                  AppTheme.successGreen,
+                  AppTheme.alertAmber,
+                  AppTheme.alertRed,
+                ],
                 stops: <double>[0.0, 0.6, 1.0],
               ),
               cornerStyle: CornerStyle.bothCurve,
@@ -210,7 +644,7 @@ class _SpeedGauge extends StatelessWidget {
                   Text(
                     speed.toString(),
                     style: GoogleFonts.montserrat(
-                      fontSize: 56,
+                      fontSize: 48,
                       fontWeight: FontWeight.w300,
                       color: Colors.white,
                       height: 1.0,
@@ -220,7 +654,7 @@ class _SpeedGauge extends StatelessWidget {
                   Text(
                     speedUnit,
                     style: GoogleFonts.inter(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: Colors.grey,
                       letterSpacing: 2,
@@ -228,9 +662,9 @@ class _SpeedGauge extends StatelessWidget {
                   ),
                 ],
               ),
-            )
+            ),
           ],
-        )
+        ),
       ],
     );
   }
