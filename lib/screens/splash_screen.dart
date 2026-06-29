@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _startBootSequence() async {
     // Play the welcome sound as soon as the screen loads
     try {
-      await _audioPlayer.play(AssetSource('sound/wellcome.wav'));
+      await _audioPlayer.play(AssetSource('sound/wellcome.mp3'));
     } catch (e) {
       debugPrint('Error playing sound: $e');
     }
