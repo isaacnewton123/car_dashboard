@@ -82,9 +82,10 @@ class ObdService {
   final FlutterClassicBluetooth _bluetooth = FlutterClassicBluetooth();
   BtcConnection? _connection;
   ObdConnectionStatus _status = ObdConnectionStatus.disconnected;
-  Timer? _pollingTimer;
-  int _pollCycle = 0;
   bool _isPolling = false;
+  final Map<ObdPid, DateTime> _lastPolledTimes = {};
+  final Set<ObdPid> _unsupportedPids = {};
+  final Map<ObdPid, int> _failCounts = {};
 
   /// Buffer for accumulating partial responses from the ELM327.
   final StringBuffer _responseBuffer = StringBuffer();
@@ -180,9 +181,10 @@ class ObdService {
 
   /// Gracefully disconnect and stop polling.
   Future<void> disconnect() async {
-    _pollingTimer?.cancel();
-    _pollingTimer = null;
     _isPolling = false;
+    _lastPolledTimes.clear();
+    _unsupportedPids.clear();
+    _failCounts.clear();
 
     await _inputSubscription?.cancel();
     _inputSubscription = null;
@@ -220,7 +222,6 @@ class ObdService {
 
   /// Clean up resources.
   void dispose() {
-    _pollingTimer?.cancel();
     _inputSubscription?.cancel();
     _connection?.dispose();
   }
@@ -249,6 +250,12 @@ class ObdService {
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
+    // Fetch one-time PIDs (e.g. Warm-ups, OBD Compliance)
+    for (final ObdPid pid in ObdPids.oneTimePulls) {
+      await _pollSinglePid(pid);
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
     return true;
   }
 
@@ -257,61 +264,74 @@ class ObdService {
   // =========================================================================
 
   void _startPolling() {
-    _pollCycle = 0;
-    _pollingTimer?.cancel();
-    // Use a timer to trigger each poll cycle
-    _pollingTimer = Timer.periodic(
-      const Duration(milliseconds: 100),
-      (_) => _pollNextBatch(),
-    );
+    _isPolling = true;
+    _pollLoop();
   }
 
-  Future<void> _pollNextBatch() async {
-    if (_isPolling || !isConnected) return;
-    _isPolling = true;
+  Future<void> _pollLoop() async {
+    while (_isPolling && isConnected) {
+      try {
+        ObdPid? nextPid;
+        Duration maxOverdue = const Duration(days: -1);
+        final DateTime now = DateTime.now();
 
-    try {
-      // High priority: every cycle
-      for (final ObdPid pid in ObdPids.highPriority) {
-        if (!isConnected) break;
-        await _pollSinglePid(pid);
-        await Future.delayed(_kInterCommandDelay);
-      }
-
-      // Medium priority: every 3rd cycle
-      if (_pollCycle % 3 == 0) {
-        for (final ObdPid pid in ObdPids.mediumPriority) {
-          if (!isConnected) break;
-          await _pollSinglePid(pid);
-          await Future.delayed(_kInterCommandDelay);
+        // Find the PID that is most overdue
+        for (final pid in ObdPids.periodicPulls) {
+          if (_unsupportedPids.contains(pid)) continue;
+          
+          final lastPolled = _lastPolledTimes[pid];
+          if (lastPolled == null) {
+            nextPid = pid;
+            break; // Never polled before, prioritize it
+          }
+          final overdue = now.difference(lastPolled) - (pid.pollingInterval ?? Duration.zero);
+          if (overdue > maxOverdue) {
+            maxOverdue = overdue;
+            nextPid = pid;
+          }
         }
-      }
 
-      // Low priority: every 10th cycle
-      if (_pollCycle % 10 == 0) {
-        for (final ObdPid pid in ObdPids.lowPriority) {
-          if (!isConnected) break;
-          await _pollSinglePid(pid);
+        // If a PID is due (or we've never polled it)
+        if (nextPid != null && (maxOverdue >= Duration.zero || _lastPolledTimes[nextPid] == null)) {
+          await _pollSinglePid(nextPid);
+          _lastPolledTimes[nextPid] = DateTime.now();
           await Future.delayed(_kInterCommandDelay);
+        } else {
+          // Nothing is due yet, sleep briefly
+          await Future.delayed(const Duration(milliseconds: 10));
         }
+      } catch (e) {
+        _log('Polling loop error: $e');
+        await Future.delayed(const Duration(milliseconds: 500));
       }
-
-      _pollCycle++;
-    } catch (e) {
-      _log('Polling error: $e');
-    } finally {
-      _isPolling = false;
     }
+    _isPolling = false;
   }
 
   Future<void> _pollSinglePid(ObdPid pid) async {
+    if (_unsupportedPids.contains(pid)) return;
+
     final String response = await _sendCommand(pid.command);
     if (response.isEmpty || response.contains('NO DATA') || response.contains('ERROR')) {
+      _failCounts[pid] = (_failCounts[pid] ?? 0) + 1;
+      if (_failCounts[pid]! >= 2 || response.contains('NO DATA')) {
+        _log('PID ${pid.name} marked unsupported.');
+        _unsupportedPids.add(pid);
+      }
       return;
     }
 
     final List<int>? dataBytes = _parseHexResponse(response, pid);
-    if (dataBytes == null || dataBytes.length < pid.responseBytes) return;
+    if (dataBytes == null || dataBytes.length < pid.responseBytes) {
+      _failCounts[pid] = (_failCounts[pid] ?? 0) + 1;
+      if (_failCounts[pid]! >= 3) {
+        _log('PID ${pid.name} marked unsupported (invalid data).');
+        _unsupportedPids.add(pid);
+      }
+      return;
+    }
+
+    _failCounts[pid] = 0;
 
     try {
       final double value = pid.parse(dataBytes);
@@ -450,8 +470,10 @@ class ObdService {
 
   void _onDisconnected() {
     _log('Bluetooth disconnected.');
-    _pollingTimer?.cancel();
     _isPolling = false;
+    _lastPolledTimes.clear();
+    _unsupportedPids.clear();
+    _failCounts.clear();
     _setStatus(ObdConnectionStatus.disconnected);
   }
 

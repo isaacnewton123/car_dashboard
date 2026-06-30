@@ -52,9 +52,9 @@ class TripPage extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _DigitalDataCard(
-                              title: 'FUEL RATE',
-                              value: p.fuelRate,
-                              unit: 'L/h',
+                              title: 'FUEL ECONOMY',
+                              value: p.fuelEconomy,
+                              unit: 'km/L',
                               delay: 200,
                               icon: HugeIcons.strokeRoundedDroplet,
                             ),
@@ -169,10 +169,7 @@ class _DigitalDataCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.03),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.08),
-              width: 1,
-            ),
+            border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
           ),
           padding: const EdgeInsets.all(20),
           child: Column(

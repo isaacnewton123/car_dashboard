@@ -50,31 +50,44 @@ class DashboardPage extends StatelessWidget {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       _InfoCard(
-                                        hugeIcon: HugeIcons.strokeRoundedThermometer,
+                                        hugeIcon:
+                                            HugeIcons.strokeRoundedThermometer,
                                         label: 'COOLANT',
                                         value: '${p.coolantTemp}°C',
                                         valueColor: p.coolantTemp > 95
                                             ? AppTheme.alertRed
                                             : p.coolantTemp > 85
-                                                ? AppTheme.alertAmber
-                                                : AppTheme.accentCyan,
-                                      ).animate().fadeIn(duration: 600.ms, delay: 100.ms),
+                                            ? AppTheme.alertAmber
+                                            : AppTheme.accentCyan,
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 100.ms,
+                                      ),
                                       const SizedBox(height: 12),
                                       _InfoCard(
                                         materialIcon: Icons.bolt_rounded,
                                         label: 'TIMING',
-                                        value: '${p.ignitionTiming.toStringAsFixed(1)}°',
+                                        value:
+                                            '${p.ignitionTiming.toStringAsFixed(1)}°',
                                         valueColor: AppTheme.successGreen,
-                                      ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 200.ms,
+                                      ),
                                       const SizedBox(height: 12),
                                       _InfoCard(
-                                        hugeIcon: HugeIcons.strokeRoundedBatteryFull,
+                                        hugeIcon:
+                                            HugeIcons.strokeRoundedBatteryFull,
                                         label: 'BATTERY',
-                                        value: '${p.batteryVoltage.toStringAsFixed(1)}V',
+                                        value:
+                                            '${p.batteryVoltage.toStringAsFixed(1)}V',
                                         valueColor: p.batteryVoltage < 12.0
                                             ? AppTheme.alertRed
                                             : AppTheme.accentCyan,
-                                      ).animate().fadeIn(duration: 600.ms, delay: 300.ms),
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 300.ms,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -84,7 +97,10 @@ class DashboardPage extends StatelessWidget {
                                   width: gaugeSize,
                                   height: gaugeSize,
                                   child: _RpmGauge(rpm: p.rpm),
-                                ).animate().fadeIn(duration: 800.ms, curve: Curves.easeOut),
+                                ).animate().fadeIn(
+                                  duration: 800.ms,
+                                  curve: Curves.easeOut,
+                                ),
 
                                 // Center: Car + Gear
                                 Expanded(
@@ -101,10 +117,15 @@ class DashboardPage extends StatelessWidget {
                                         decoration: BoxDecoration(
                                           border: Border.all(
                                             color: p.isConnected
-                                                ? AppTheme.successGreen.withValues(alpha: 0.3)
-                                                : AppTheme.alertRed.withValues(alpha: 0.3),
+                                                ? AppTheme.successGreen
+                                                      .withValues(alpha: 0.3)
+                                                : AppTheme.alertRed.withValues(
+                                                    alpha: 0.3,
+                                                  ),
                                           ),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           color: AppTheme.glassFill,
                                         ),
                                         child: Row(
@@ -120,10 +141,15 @@ class DashboardPage extends StatelessWidget {
                                                     : AppTheme.alertRed,
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: (p.isConnected
-                                                            ? AppTheme.successGreen
-                                                            : AppTheme.alertRed)
-                                                        .withValues(alpha: 0.5),
+                                                    color:
+                                                        (p.isConnected
+                                                                ? AppTheme
+                                                                      .successGreen
+                                                                : AppTheme
+                                                                      .alertRed)
+                                                            .withValues(
+                                                              alpha: 0.5,
+                                                            ),
                                                     blurRadius: 6,
                                                   ),
                                                 ],
@@ -131,7 +157,9 @@ class DashboardPage extends StatelessWidget {
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
-                                              p.isConnected ? 'OBD-II LINKED' : 'DISCONNECTED',
+                                              p.isConnected
+                                                  ? 'OBD-II LINKED'
+                                                  : 'DISCONNECTED',
                                               style: GoogleFonts.inter(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.w700,
@@ -143,15 +171,22 @@ class DashboardPage extends StatelessWidget {
                                             ),
                                           ],
                                         ),
-                                      ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 200.ms,
+                                      ),
                                       const SizedBox(height: 12),
                                       // Car image
                                       SizedBox(
                                         width: constraints.maxWidth * 0.15,
-                                        child: Image.asset(
-                                          'assets/img/sigra.png',
-                                          fit: BoxFit.contain,
-                                        ).animate().fadeIn(duration: 800.ms, delay: 200.ms),
+                                        child:
+                                            Image.asset(
+                                              'assets/img/sigra.png',
+                                              fit: BoxFit.contain,
+                                            ).animate().fadeIn(
+                                              duration: 800.ms,
+                                              delay: 200.ms,
+                                            ),
                                       ),
                                       const SizedBox(height: 8),
                                       // Engine load bar
@@ -161,14 +196,16 @@ class DashboardPage extends StatelessWidget {
                                           children: [
                                             Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment.spaceBetween,
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(
                                                   'ENGINE LOAD',
                                                   style: GoogleFonts.inter(
                                                     fontSize: 9,
                                                     fontWeight: FontWeight.w600,
-                                                    color: AppTheme.textSecondary,
+                                                    color:
+                                                        AppTheme.textSecondary,
                                                     letterSpacing: 1.5,
                                                   ),
                                                 ),
@@ -184,30 +221,46 @@ class DashboardPage extends StatelessWidget {
                                             ),
                                             const SizedBox(height: 4),
                                             ClipRRect(
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
                                               child: TweenAnimationBuilder<double>(
-                                                duration: const Duration(milliseconds: 300),
-                                                curve: Curves.easeOutCubic,
-                                                tween: Tween<double>(begin: 0, end: p.engineLoad / 100.0),
-                                                builder: (context, value, _) => LinearProgressIndicator(
-                                                  value: value,
-                                                  minHeight: 5,
-                                                  backgroundColor:
-                                                      AppTheme.surfaceLight,
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<Color>(
-                                                    p.engineLoad > 80
-                                                        ? AppTheme.alertRed
-                                                        : p.engineLoad > 50
-                                                            ? AppTheme.alertAmber
-                                                            : AppTheme.accentCyan,
-                                                  ),
+                                                duration: const Duration(
+                                                  milliseconds: 300,
                                                 ),
+                                                curve: Curves.easeOutCubic,
+                                                tween: Tween<double>(
+                                                  begin: 0,
+                                                  end: p.engineLoad / 100.0,
+                                                ),
+                                                builder: (context, value, _) =>
+                                                    LinearProgressIndicator(
+                                                      value: value,
+                                                      minHeight: 5,
+                                                      backgroundColor:
+                                                          AppTheme.surfaceLight,
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                            Color
+                                                          >(
+                                                            p.engineLoad > 80
+                                                                ? AppTheme
+                                                                      .alertRed
+                                                                : p.engineLoad >
+                                                                      50
+                                                                ? AppTheme
+                                                                      .alertAmber
+                                                                : AppTheme
+                                                                      .accentCyan,
+                                                          ),
+                                                    ),
                                               ),
                                             ),
                                           ],
                                         ),
-                                      ).animate().fadeIn(duration: 600.ms, delay: 400.ms),
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 400.ms,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -220,7 +273,10 @@ class DashboardPage extends StatelessWidget {
                                     speed: p.displaySpeed,
                                     speedUnit: p.speedUnit.label,
                                   ),
-                                ).animate().fadeIn(duration: 800.ms, curve: Curves.easeOut),
+                                ).animate().fadeIn(
+                                  duration: 800.ms,
+                                  curve: Curves.easeOut,
+                                ),
 
                                 // Right info cards
                                 Expanded(
@@ -233,21 +289,30 @@ class DashboardPage extends StatelessWidget {
                                         label: 'THROTTLE',
                                         value: '${p.throttlePosition}%',
                                         valueColor: AppTheme.accentCyan,
-                                      ).animate().fadeIn(duration: 600.ms, delay: 100.ms),
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 100.ms,
+                                      ),
                                       const SizedBox(height: 12),
                                       _InfoCard(
                                         materialIcon: Icons.air_rounded,
                                         label: 'INTAKE AIR',
                                         value: '${p.intakeAirTemp}°C',
                                         valueColor: AppTheme.accentCyan,
-                                      ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 200.ms,
+                                      ),
                                       const SizedBox(height: 12),
                                       _InfoCard(
                                         materialIcon: Icons.compress_rounded,
                                         label: 'BARO',
                                         value: '${p.barometricPressure} kPa',
                                         valueColor: AppTheme.accentCyan,
-                                      ).animate().fadeIn(duration: 600.ms, delay: 300.ms),
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 300.ms,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -264,46 +329,59 @@ class DashboardPage extends StatelessWidget {
                                 Expanded(
                                   flex: 3,
                                   child: _QuoteCard().animate().fadeIn(
-                                        duration: 800.ms,
-                                        delay: 500.ms,
-                                      ),
+                                    duration: 800.ms,
+                                    delay: 500.ms,
+                                  ),
                                 ),
                                 const SizedBox(width: 16),
                                 // Fuel rate
                                 Expanded(
                                   flex: 2,
-                                  child: _StatTile(
-                                    icon: HugeIcons.strokeRoundedFlash,
-                                    label: 'FUEL RATE',
-                                    value: '${p.fuelRate.toStringAsFixed(1)} L/h',
-                                    accent: AppTheme.alertAmber,
-                                  ).animate().fadeIn(duration: 600.ms, delay: 500.ms),
+                                  child:
+                                      _StatTile(
+                                        icon: HugeIcons.strokeRoundedFlash,
+                                        label: 'ECONOMY',
+                                        value:
+                                            '${p.fuelEconomy.toStringAsFixed(1)} km/L',
+                                        accent: AppTheme.alertAmber,
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 500.ms,
+                                      ),
                                 ),
                                 const SizedBox(width: 16),
                                 // O2 Sensor
                                 Expanded(
                                   flex: 2,
-                                  child: _StatTile(
-                                    icon: HugeIcons.strokeRoundedFlash,
-                                    label: 'O₂ SENSOR',
-                                    value:
-                                        '${p.o2SensorVoltage.toStringAsFixed(2)}V',
-                                    accent: AppTheme.successGreen,
-                                  ).animate().fadeIn(duration: 600.ms, delay: 600.ms),
+                                  child:
+                                      _StatTile(
+                                        icon: HugeIcons.strokeRoundedFlash,
+                                        label: 'O₂ SENSOR',
+                                        value:
+                                            '${p.o2SensorVoltage.toStringAsFixed(2)}V',
+                                        accent: AppTheme.successGreen,
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 600.ms,
+                                      ),
                                 ),
                                 const SizedBox(width: 16),
                                 // Fuel Trim
                                 Expanded(
                                   flex: 2,
-                                  child: _StatTile(
-                                    icon: HugeIcons.strokeRoundedSettings01,
-                                    label: 'FUEL TRIM',
-                                    value:
-                                        '${p.fuelTrim >= 0 ? '+' : ''}${p.fuelTrim.toStringAsFixed(1)}%',
-                                    accent: p.fuelTrim.abs() > 10
-                                        ? AppTheme.alertRed
-                                        : AppTheme.accentCyan,
-                                  ).animate().fadeIn(duration: 600.ms, delay: 700.ms),
+                                  child:
+                                      _StatTile(
+                                        icon: HugeIcons.strokeRoundedSettings01,
+                                        label: 'FUEL TRIM',
+                                        value:
+                                            '${p.fuelTrim >= 0 ? '+' : ''}${p.fuelTrim.toStringAsFixed(1)}%',
+                                        accent: p.fuelTrim.abs() > 10
+                                            ? AppTheme.alertRed
+                                            : AppTheme.accentCyan,
+                                      ).animate().fadeIn(
+                                        duration: 600.ms,
+                                        delay: 700.ms,
+                                      ),
                                 ),
                               ],
                             ),
@@ -409,7 +487,11 @@ class _InfoCard extends StatelessWidget {
       child: Row(
         children: [
           hugeIcon != null
-              ? HugeIcon(icon: hugeIcon!, color: AppTheme.textSecondary, size: 16)
+              ? HugeIcon(
+                  icon: hugeIcon!,
+                  color: AppTheme.textSecondary,
+                  size: 16,
+                )
               : Icon(materialIcon!, color: AppTheme.textSecondary, size: 16),
           const Spacer(),
           Text(
@@ -588,10 +670,7 @@ class _RpmGauge extends StatelessWidget {
 // =============================================================================
 
 class _SpeedGauge extends StatelessWidget {
-  const _SpeedGauge({
-    required this.speed,
-    required this.speedUnit,
-  });
+  const _SpeedGauge({required this.speed, required this.speedUnit});
 
   final int speed;
   final String speedUnit;

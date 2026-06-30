@@ -96,6 +96,16 @@ class AssistantPage extends StatelessWidget {
                         letterSpacing: 1,
                       ),
                     ).animate(target: p.isListening ? 1 : 0).fade(),
+                    const SizedBox(height: 32),
+                    if (p.chatHistory.isNotEmpty)
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                        ),
+                        onPressed: p.clearChatHistory,
+                        tooltip: 'Clear Memory',
+                      ).animate().fadeIn(),
                   ],
                 ),
               ),
@@ -115,9 +125,10 @@ class AssistantPage extends StatelessWidget {
                         border: Border.all(color: AppTheme.glassBorder),
                       ),
                       child: _ConversationArea(
+                        chatHistory: p.chatHistory,
                         transcription: p.transcription,
-                        aiResponse: p.aiResponse,
                         isProcessing: p.isProcessing,
+                        isListening: p.isListening,
                       ),
                     ),
                   ),
@@ -220,18 +231,20 @@ class _MicButton extends StatelessWidget {
 
 class _ConversationArea extends StatelessWidget {
   const _ConversationArea({
+    required this.chatHistory,
     required this.transcription,
-    required this.aiResponse,
     required this.isProcessing,
+    required this.isListening,
   });
 
+  final List<Map<String, dynamic>> chatHistory;
   final String transcription;
-  final String aiResponse;
   final bool isProcessing;
+  final bool isListening;
 
   @override
   Widget build(BuildContext context) {
-    if (transcription.isEmpty && aiResponse.isEmpty && !isProcessing) {
+    if (chatHistory.isEmpty && transcription.isEmpty && !isProcessing) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -243,7 +256,7 @@ class _ConversationArea extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Tap the mic to ask\nyour AI assistant',
+              'Tap the mic to ask\nFirdha',
               textAlign: TextAlign.center,
               style: GoogleFonts.montserrat(
                 fontSize: 14,
@@ -256,63 +269,80 @@ class _ConversationArea extends StatelessWidget {
       );
     }
 
-    return SingleChildScrollView(
-      reverse: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (transcription.isNotEmpty)
-            _ChatBubble(
-              text: transcription,
-              isUser: true,
-            ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1),
-          
-          const SizedBox(height: 16),
-          
-          if (isProcessing)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List<Widget>.generate(
-                    3,
-                    (int i) => Container(
-                      width: 8,
-                      height: 8,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accentCyan.withValues(alpha: 0.7),
-                        shape: BoxShape.circle,
-                      ),
-                    )
-                        .animate(onPlay: (c) => c.repeat())
-                        .slideY(
-                          begin: 0,
-                          end: -0.5,
-                          duration: 300.ms,
-                          delay: (i * 100).ms,
-                          curve: Curves.easeInOut,
-                        )
-                        .then()
-                        .slideY(
-                          begin: -0.5,
-                          end: 0,
-                          duration: 300.ms,
-                          curve: Curves.easeInOut,
-                        ),
+    final List<Widget> children = [];
+
+    // Processing indicator
+    if (isProcessing) {
+      children.add(
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 12.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List<Widget>.generate(
+                3,
+                (int i) => Container(
+                  width: 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentCyan.withValues(alpha: 0.7),
+                    shape: BoxShape.circle,
                   ),
-                ),
+                )
+                    .animate(onPlay: (c) => c.repeat())
+                    .slideY(
+                      begin: 0,
+                      end: -0.5,
+                      duration: 300.ms,
+                      delay: (i * 100).ms,
+                      curve: Curves.easeInOut,
+                    )
+                    .then()
+                    .slideY(
+                      begin: -0.5,
+                      end: 0,
+                      duration: 300.ms,
+                      curve: Curves.easeInOut,
+                    ),
               ),
-            )
-          else if (aiResponse.isNotEmpty)
-            _ChatBubble(
-              text: aiResponse,
-              isUser: false,
-            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
-        ],
-      ),
+            ),
+          ),
+        ),
+      );
+      children.add(const SizedBox(height: 16));
+    }
+
+    // Live transcription preview
+    if (isListening && transcription.isNotEmpty) {
+      children.add(
+        _ChatBubble(
+          text: transcription,
+          isUser: true,
+        ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1),
+      );
+      children.add(const SizedBox(height: 16));
+    }
+
+    // Historical messages
+    for (int i = chatHistory.length - 1; i >= 0; i--) {
+      final msg = chatHistory[i];
+      final bool isUser = msg['role'] == 'user';
+      final String text = msg['parts'][0]['text'];
+      
+      children.add(
+        _ChatBubble(
+          text: text,
+          isUser: isUser,
+        ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1),
+      );
+      children.add(const SizedBox(height: 16));
+    }
+
+    return ListView(
+      reverse: true,
+      children: children,
     );
   }
 }

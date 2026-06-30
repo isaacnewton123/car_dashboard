@@ -1,8 +1,8 @@
 /// Strongly-typed OBD-II PID definitions for the 2021 Daihatsu Sigra R Deluxe.
 ///
 /// Each [ObdPid] knows its Mode 01 command, how many response data bytes
-/// to expect, how to parse those bytes into a numeric value, and what
-/// human-readable unit it represents.
+/// to expect, how to parse those bytes into a numeric value, what
+/// human-readable unit it represents, and its optimal polling interval.
 library;
 
 // ---------------------------------------------------------------------------
@@ -43,6 +43,7 @@ class ObdPid {
     required this.unit,
     required this.responseBytes,
     required this.parse,
+    this.pollingInterval, // null means pull once on connect
     this.minValue = 0,
     this.maxValue = 100,
   });
@@ -64,6 +65,9 @@ class ObdPid {
 
   /// Parser function: takes the raw data bytes and returns a [double].
   final double Function(List<int> bytes) parse;
+
+  /// Desired polling interval. If null, this PID is only pulled once upon connection.
+  final Duration? pollingInterval;
 
   /// Expected minimum value (for gauge scaling).
   final double minValue;
@@ -89,6 +93,7 @@ class ObdPids {
     unit: ObdUnit.rpm,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]) / 4.0,
+    pollingInterval: const Duration(milliseconds: 100),
     maxValue: 8000,
   );
 
@@ -99,6 +104,7 @@ class ObdPids {
     unit: ObdUnit.kmh,
     responseBytes: 1,
     parse: (List<int> b) => b[0].toDouble(),
+    pollingInterval: const Duration(milliseconds: 100),
     maxValue: 220,
   );
 
@@ -109,6 +115,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => b[0] * 100.0 / 255.0,
+    pollingInterval: const Duration(milliseconds: 150),
   );
 
   static final ObdPid coolantTemp = ObdPid(
@@ -118,6 +125,7 @@ class ObdPids {
     unit: ObdUnit.celsius,
     responseBytes: 1,
     parse: (List<int> b) => b[0] - 40.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     minValue: -40,
     maxValue: 215,
   );
@@ -131,6 +139,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => (b[0] - 128) * 100.0 / 128.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     minValue: -100,
   );
 
@@ -141,6 +150,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => (b[0] - 128) * 100.0 / 128.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     minValue: -100,
   );
 
@@ -153,6 +163,7 @@ class ObdPids {
     unit: ObdUnit.degrees,
     responseBytes: 1,
     parse: (List<int> b) => b[0] / 2.0 - 64.0,
+    pollingInterval: const Duration(milliseconds: 1000),
     minValue: -64,
     maxValue: 63.5,
   );
@@ -164,6 +175,7 @@ class ObdPids {
     unit: ObdUnit.celsius,
     responseBytes: 1,
     parse: (List<int> b) => b[0] - 40.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     minValue: -40,
     maxValue: 215,
   );
@@ -175,6 +187,7 @@ class ObdPids {
     unit: ObdUnit.gramsPerSec,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]) / 100.0,
+    pollingInterval: const Duration(milliseconds: 1000),
     maxValue: 655.35,
   );
 
@@ -187,27 +200,30 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => b[0] * 100.0 / 255.0,
+    pollingInterval: const Duration(milliseconds: 150),
   );
 
   // --- O2 Sensors (Narrow-band) ---
 
   static final ObdPid o2SensorB1S2Voltage = ObdPid(
-    id: 0x19,
-    command: '0119',
+    id: 0x15,
+    command: '0115',
     name: 'O2 Sensor B1S2 Voltage',
     unit: ObdUnit.volts,
     responseBytes: 2,
     parse: (List<int> b) => b[0] / 200.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     maxValue: 1.275,
   );
 
   static final ObdPid o2SensorB1S2FuelTrim = ObdPid(
-    id: 0x19,
-    command: '0119',
+    id: 0x15,
+    command: '0115',
     name: 'O2 Sensor B1S2 Fuel Trim',
     unit: ObdUnit.percent,
     responseBytes: 2,
     parse: (List<int> b) => (b[1] - 128) * 100.0 / 128.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     minValue: -100,
   );
 
@@ -220,6 +236,7 @@ class ObdPids {
     unit: ObdUnit.none,
     responseBytes: 1,
     parse: (List<int> b) => b[0].toDouble(),
+    pollingInterval: null, // One pull when connected
     maxValue: 255,
   );
 
@@ -230,6 +247,7 @@ class ObdPids {
     unit: ObdUnit.seconds,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]).toDouble(),
+    pollingInterval: const Duration(milliseconds: 5000),
     maxValue: 65535,
   );
 
@@ -240,6 +258,7 @@ class ObdPids {
     unit: ObdUnit.km,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]).toDouble(),
+    pollingInterval: const Duration(milliseconds: 10000),
     maxValue: 65535,
   );
 
@@ -252,6 +271,7 @@ class ObdPids {
     unit: ObdUnit.volts,
     responseBytes: 4,
     parse: (List<int> b) => ((b[2] * 256) + b[3]) / 8192.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     maxValue: 8.0,
   );
 
@@ -262,6 +282,7 @@ class ObdPids {
     unit: ObdUnit.ratio,
     responseBytes: 4,
     parse: (List<int> b) => ((b[0] * 256) + b[1]) / 32768.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     maxValue: 2.0,
   );
 
@@ -274,6 +295,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => b[0] * 100.0 / 255.0,
+    pollingInterval: const Duration(milliseconds: 5000),
   );
 
   static final ObdPid warmupsSinceEcuReset = ObdPid(
@@ -283,6 +305,7 @@ class ObdPids {
     unit: ObdUnit.none,
     responseBytes: 1,
     parse: (List<int> b) => b[0].toDouble(),
+    pollingInterval: null,
     maxValue: 255,
   );
 
@@ -293,6 +316,7 @@ class ObdPids {
     unit: ObdUnit.km,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]).toDouble(),
+    pollingInterval: const Duration(milliseconds: 10000),
     maxValue: 65535,
   );
 
@@ -305,6 +329,7 @@ class ObdPids {
     unit: ObdUnit.kpa,
     responseBytes: 1,
     parse: (List<int> b) => b[0].toDouble(),
+    pollingInterval: const Duration(milliseconds: 10000),
     maxValue: 255,
   );
 
@@ -317,6 +342,7 @@ class ObdPids {
     unit: ObdUnit.milliamps,
     responseBytes: 4,
     parse: (List<int> b) => ((b[2] * 256) + b[3]) / 256.0 - 128.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     minValue: -128,
     maxValue: 128,
   );
@@ -328,6 +354,7 @@ class ObdPids {
     unit: ObdUnit.ratio,
     responseBytes: 4,
     parse: (List<int> b) => ((b[0] * 256) + b[1]) / 32768.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     maxValue: 2.0,
   );
 
@@ -340,6 +367,7 @@ class ObdPids {
     unit: ObdUnit.celsius,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]) / 10.0 - 40.0,
+    pollingInterval: const Duration(milliseconds: 5000),
     minValue: -40,
     maxValue: 6513.5,
   );
@@ -351,6 +379,7 @@ class ObdPids {
     unit: ObdUnit.celsius,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]) / 10.0 - 40.0,
+    pollingInterval: const Duration(milliseconds: 5000),
     minValue: -40,
     maxValue: 6513.5,
   );
@@ -364,6 +393,7 @@ class ObdPids {
     unit: ObdUnit.volts,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]) / 1000.0,
+    pollingInterval: const Duration(milliseconds: 5000),
     maxValue: 65.535,
   );
 
@@ -376,6 +406,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]) * 100.0 / 255.0,
+    pollingInterval: const Duration(milliseconds: 150),
     maxValue: 25700,
   );
 
@@ -386,6 +417,7 @@ class ObdPids {
     unit: ObdUnit.ratio,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]) / 32768.0,
+    pollingInterval: const Duration(milliseconds: 2000),
     maxValue: 2.0,
   );
 
@@ -398,6 +430,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => b[0] * 100.0 / 255.0,
+    pollingInterval: const Duration(milliseconds: 150),
   );
 
   static final ObdPid absThrottlePosB = ObdPid(
@@ -407,6 +440,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => b[0] * 100.0 / 255.0,
+    pollingInterval: const Duration(milliseconds: 150),
   );
 
   static final ObdPid absThrottlePosD = ObdPid(
@@ -416,6 +450,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => b[0] * 100.0 / 255.0,
+    pollingInterval: const Duration(milliseconds: 150),
   );
 
   static final ObdPid absThrottlePosE = ObdPid(
@@ -425,6 +460,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => b[0] * 100.0 / 255.0,
+    pollingInterval: const Duration(milliseconds: 150),
   );
 
   static final ObdPid throttleActuatorCtrl = ObdPid(
@@ -434,6 +470,7 @@ class ObdPids {
     unit: ObdUnit.percent,
     responseBytes: 1,
     parse: (List<int> b) => b[0] * 100.0 / 255.0,
+    pollingInterval: const Duration(milliseconds: 150),
   );
 
   // --- MIL Runtime & DTC Time ---
@@ -445,6 +482,7 @@ class ObdPids {
     unit: ObdUnit.minutes,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]).toDouble(),
+    pollingInterval: null,
     maxValue: 65535,
   );
 
@@ -455,37 +493,41 @@ class ObdPids {
     unit: ObdUnit.minutes,
     responseBytes: 2,
     parse: (List<int> b) => ((b[0] * 256) + b[1]).toDouble(),
+    pollingInterval: const Duration(milliseconds: 10000),
     maxValue: 65535,
   );
 
   // ---------------------------------------------------------------------------
-  // Polling groups — ordered by priority for the polling loop
+  // Lists
   // ---------------------------------------------------------------------------
 
-  /// High-frequency PIDs polled every cycle (core dashboard data).
-  static final List<ObdPid> highPriority = [
+  static final List<ObdPid> all = [
     engineRpm,
     vehicleSpeed,
-    coolantTemp,
-    throttlePosition,
     calculatedLoad,
-  ];
-
-  /// Medium-frequency PIDs polled every 3rd cycle.
-  static final List<ObdPid> mediumPriority = [
-    intakeAirTemp,
-    ecuVoltage,
+    coolantTemp,
     shortTermFuelTrimB1,
-    o2SensorB1S2Voltage,
-    mafAirFlowRate,
-    ignitionTiming,
-    barometricPressure,
-  ];
-
-  /// Low-frequency PIDs polled every 10th cycle.
-  static final List<ObdPid> lowPriority = [
     longTermFuelTrimB1,
+    ignitionTiming,
+    intakeAirTemp,
+    mafAirFlowRate,
+    throttlePosition,
+    o2SensorB1S2Voltage,
+    o2SensorB1S2FuelTrim,
+    obdCompliance,
     timeSinceEngineStart,
+    distanceWithMil,
+    o2SensorB1S1WrVoltage,
+    lambdaO2B1S1Wr,
+    commandedEvapPurge,
+    warmupsSinceEcuReset,
+    distanceSinceEcuReset,
+    barometricPressure,
+    o2SensorB1S1CurrentWr,
+    lambdaO2B1S1CurrentWr,
+    catTempB1S1,
+    catTempB1S2,
+    ecuVoltage,
     absoluteEngineLoad,
     commandedEquivRatio,
     relativeThrottlePos,
@@ -493,22 +535,13 @@ class ObdPids {
     absThrottlePosD,
     absThrottlePosE,
     throttleActuatorCtrl,
-    commandedEvapPurge,
-    catTempB1S1,
-    catTempB1S2,
-    o2SensorB1S1WrVoltage,
-    o2SensorB1S1CurrentWr,
-    distanceWithMil,
-    warmupsSinceEcuReset,
-    distanceSinceEcuReset,
     engineRunTimeWithMil,
     timeSinceDtcCleared,
   ];
 
-  /// All PIDs in a flat list.
-  static final List<ObdPid> all = [
-    ...highPriority,
-    ...mediumPriority,
-    ...lowPriority,
-  ];
+  static final List<ObdPid> oneTimePulls =
+      all.where((p) => p.pollingInterval == null).toList();
+
+  static final List<ObdPid> periodicPulls =
+      all.where((p) => p.pollingInterval != null).toList();
 }

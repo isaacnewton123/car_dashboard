@@ -29,6 +29,7 @@ class CarDashboardApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<DashboardProvider>(
       create: (_) => DashboardProvider(),
+      lazy: false, // Eagerly instantiate to start background tasks (OBD connection) during splash screen
       child: MaterialApp(
         title: 'Car Dashboard',
         debugShowCheckedModeBanner: false,

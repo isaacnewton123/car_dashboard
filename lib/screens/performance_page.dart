@@ -84,26 +84,26 @@ class PerformancePage extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _RadialPerformanceGauge(
-                              title: 'INTAKE TEMP',
-                              value: p.intakeAirTemp.toDouble(),
+                              title: 'HORSEPOWER',
+                              value: p.horsepower.clamp(0, 150),
                               minValue: 0,
-                              maxValue: 100,
-                              unit: '°C',
+                              maxValue: 120, // Approx max for Sigra + buffer
+                              unit: 'HP',
                               startColor: Colors.orange,
-                              endColor: Colors.yellowAccent,
+                              endColor: Colors.redAccent,
                               delay: 400,
                             ),
                           ),
                           const SizedBox(height: 12),
                           Expanded(
                             child: _RadialPerformanceGauge(
-                              title: 'BAROMETRIC',
-                              value: p.barometricPressure.toDouble(),
-                              minValue: 70,
-                              maxValue: 110,
-                              unit: 'kPa',
+                              title: 'TORQUE',
+                              value: p.torque.clamp(0, 200),
+                              minValue: 0,
+                              maxValue: 150, // Approx max for Sigra 1.2
+                              unit: 'Nm',
                               startColor: AppTheme.alertAmber,
-                              endColor: AppTheme.alertRed,
+                              endColor: Colors.deepOrangeAccent,
                               delay: 500,
                             ),
                           ),

@@ -4,7 +4,7 @@ import 'package:flutter_classic_bluetooth/flutter_classic_bluetooth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../models/gemini_model.dart';
+
 import '../providers/dashboard_provider.dart';
 import '../services/obd_connection_state.dart';
 import '../theme/app_theme.dart';
@@ -57,24 +57,7 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 20),
-              // Right: Model selector
-              Expanded(
-                flex: 5,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SectionHeader(title: 'GEMINI MODEL'),
-                    const SizedBox(height: 10),
-                    Expanded(
-                      child: _ModelSelector(
-                        selectedModel: p.selectedModel,
-                        onSelected: p.saveSelectedModel,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // We removed the right panel so the left panel takes up the available space
             ],
           ),
         );
@@ -260,85 +243,7 @@ class _UnitToggle extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Model Selector
-// ---------------------------------------------------------------------------
 
-class _ModelSelector extends StatelessWidget {
-  const _ModelSelector({
-    required this.selectedModel,
-    required this.onSelected,
-  });
-
-  final GeminiModelId selectedModel;
-  final Future<void> Function(GeminiModelId) onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.separated(
-      itemCount: GeminiModelId.values.length,
-      separatorBuilder: (BuildContext ctx, int i) => const SizedBox(height: 6),
-      itemBuilder: (BuildContext context, int index) {
-        final GeminiModelId model = GeminiModelId.values[index];
-        final bool selected = model == selectedModel;
-        return GestureDetector(
-          onTap: () => onSelected(model),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: selected
-                  ? AppTheme.accentCyan.withValues(alpha: 0.1)
-                  : AppTheme.glassFill,
-              borderRadius:
-                  BorderRadius.circular(AppTheme.radiusSmall),
-              border: Border.all(
-                color: selected
-                    ? AppTheme.accentCyan
-                    : AppTheme.glassBorder,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  selected
-                      ? Icons.check_circle_rounded
-                      : Icons.circle_outlined,
-                  size: 18,
-                  color: selected
-                      ? AppTheme.accentCyan
-                      : AppTheme.textSecondary,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  model.displayName,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 13,
-                    fontWeight:
-                        selected ? FontWeight.w600 : FontWeight.w400,
-                    color: selected
-                        ? AppTheme.accentCyan
-                        : AppTheme.textPrimary,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  model.apiId,
-                  style: GoogleFonts.firaCode(
-                    fontSize: 9,
-                    color: AppTheme.textSecondary.withValues(alpha: 0.5),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        )
-            .animate()
-            .fadeIn(duration: 300.ms, delay: (index * 50).ms);
-      },
-    );
-  }
-}
 
 // ---------------------------------------------------------------------------
 // About Card
