@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_classic_bluetooth/flutter_classic_bluetooth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../models/gemini_model.dart';
 import '../providers/dashboard_provider.dart';
+import '../services/obd_connection_state.dart';
 import '../theme/app_theme.dart';
 
 /// Full-page settings — API key, model selector, units, about.
@@ -42,10 +44,15 @@ class SettingsPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
 
-                      // About
                       _SectionHeader(title: 'ABOUT'),
                       const SizedBox(height: 10),
                       _AboutCard(),
+                      const SizedBox(height: 24),
+
+                      // OBD-II Connection
+                      _SectionHeader(title: 'OBD-II CONNECTION'),
+                      const SizedBox(height: 10),
+                      _ObdConnectionCard(provider: p),
                     ],
                   ),
                 ),
@@ -377,5 +384,216 @@ class _AboutCard extends StatelessWidget {
         ],
       ),
     ).animate().fadeIn(duration: 400.ms, delay: 200.ms);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// OBD-II Connection Card
+// ---------------------------------------------------------------------------
+
+class _ObdConnectionCard extends StatefulWidget {
+  const _ObdConnectionCard({required this.provider});
+  final DashboardProvider provider;
+
+  @override
+  State<_ObdConnectionCard> createState() => _ObdConnectionCardState();
+}
+
+class _ObdConnectionCardState extends State<_ObdConnectionCard> {
+  bool _isLoading = false;
+  List<BtcDevice> _devices = [];
+
+  Color _statusColor(ObdConnectionStatus status) {
+    switch (status) {
+      case ObdConnectionStatus.connected:
+        return AppTheme.successGreen;
+      case ObdConnectionStatus.connecting:
+      case ObdConnectionStatus.initializing:
+      case ObdConnectionStatus.scanning:
+        return AppTheme.alertAmber;
+      case ObdConnectionStatus.error:
+        return AppTheme.alertRed;
+      case ObdConnectionStatus.disconnected:
+        return AppTheme.textSecondary;
+    }
+  }
+
+  Future<void> _autoConnect() async {
+    setState(() => _isLoading = true);
+    await widget.provider.connectObd();
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _scanDevices() async {
+    setState(() => _isLoading = true);
+    _devices = await widget.provider.discoverObdDevices();
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _connectToDevice(BtcDevice device) async {
+    setState(() => _isLoading = true);
+    await widget.provider.connectObdToDevice(device);
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ObdConnectionStatus status = widget.provider.obdStatus;
+    final bool isConnected = status == ObdConnectionStatus.connected;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.glassFill,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.glassBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status row
+          Row(
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _statusColor(status),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _statusColor(status).withValues(alpha: 0.5),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                status.label,
+                style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _statusColor(status),
+                ),
+              ),
+              const Spacer(),
+              if (widget.provider.isLiveObd)
+                Text(
+                  'LIVE',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.successGreen,
+                    letterSpacing: 2,
+                  ),
+                ),
+            ],
+          ),
+          if (status == ObdConnectionStatus.error && widget.provider.obdErrorMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 18),
+              child: Text(
+                widget.provider.obdErrorMessage!,
+                style: GoogleFonts.montserrat(
+                  fontSize: 10,
+                  color: AppTheme.alertRed,
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
+
+          // Action buttons
+          if (_isLoading)
+            const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else if (isConnected)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => widget.provider.disconnectObd(),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.alertRed,
+                  side: const BorderSide(color: AppTheme.alertRed),
+                ),
+                child: const Text('Disconnect'),
+              ),
+            )
+          else ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _autoConnect,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentCyan,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text('Auto Connect (OBDII)'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _scanDevices,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.textSecondary,
+                  side: const BorderSide(color: AppTheme.glassBorder),
+                ),
+                child: const Text('Scan for Devices'),
+              ),
+            ),
+          ],
+
+          // Device list
+          if (_devices.isNotEmpty && !isConnected) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Found ${_devices.length} device(s):',
+              style: GoogleFonts.montserrat(
+                fontSize: 11,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ..._devices.map((BtcDevice device) {
+              return InkWell(
+                onTap: () => _connectToDevice(device),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.bluetooth, size: 16, color: AppTheme.accentCyan),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          device.displayName.isNotEmpty ? device.displayName : device.address,
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        device.address,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 10,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
+    ).animate().fadeIn(duration: 400.ms, delay: 300.ms);
   }
 }

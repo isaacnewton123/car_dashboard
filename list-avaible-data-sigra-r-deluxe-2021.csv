@@ -1,0 +1,69 @@
+Engine RPM
+
+Vehicle Speed
+
+Calculated Load Value
+
+Coolant Temperature
+
+Short Term Fuel Trim (Bank 1)
+
+Long Term Fuel Trim (Bank 1)
+
+Timing Advance (Cyl. #1)
+
+Intake Air Temperature
+
+Air Flow Rate (MAF sensor)
+
+Absolute Throttle Position
+
+O2 Sensor Voltage B1S2
+
+O2 Sensor fuel trim B1S2
+
+OBD conforms to
+
+Time Since Engine Start
+
+Distance since MIL activated
+
+O2 Sensor B1S1 Bank 1 (WR)
+
+O2 Sensor B1S1 lambda Bank 1 (WR)
+
+Commanded Evaporative Purge
+
+Warm-ups since ECU reset
+
+Distance since ECU reset
+
+Barometric Pressure (absolute)
+
+O2 Sensor 1 current Bank 1 (WR)
+
+O2 Sensor 1 lambda Bank 1 (WR)
+
+CAT Temperature B1S1
+
+CAT Temperature B1S2
+
+ECU voltage
+
+Absolute Engine Load
+
+Commanded Equivalence Ratio
+
+Relative Throttle Position
+
+Absolute Throttle Position B
+
+Absolute Throttle Position D
+
+Absolute Throttle Position E
+
+Comm. Throttle Actuator Cntrl
+
+Engine running while MIL on
+
+Time since DTCs cleared

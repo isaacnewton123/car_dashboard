@@ -74,11 +74,11 @@ class _StatusHeaderState extends State<StatusHeader> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // ── Left: Fuel badge ──
+                      // ── Left: Engine Load badge ──
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: p.fuelLevel > 20
+                          color: p.engineLoad < 80
                               ? AppTheme.accentCyan.withValues(alpha: 0.2)
                               : AppTheme.alertRed.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
@@ -86,28 +86,20 @@ class _StatusHeaderState extends State<StatusHeader> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedArrowLeft01,
-                              size: 10.0,
-                              color: p.fuelLevel > 20
-                                  ? AppTheme.accentCyan
-                                  : AppTheme.alertRed,
-                            ),
-                            const SizedBox(width: 2),
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedFuelStation,
+                            Icon(
+                              Icons.memory_rounded,
                               size: 14.0,
-                              color: p.fuelLevel > 20
+                              color: p.engineLoad < 80
                                   ? AppTheme.accentCyan
                                   : AppTheme.alertRed,
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              '${p.fuelLevel}%',
+                              '${p.engineLoad}%',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
-                                color: p.fuelLevel > 20
+                                color: p.engineLoad < 80
                                     ? AppTheme.accentCyan
                                     : AppTheme.alertRed,
                                 letterSpacing: 0.5,

@@ -45,6 +45,7 @@ class PerformancePage extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
+                    // Column 1: Engine Load + Throttle
                     Expanded(
                       child: Column(
                         children: [
@@ -60,7 +61,7 @@ class PerformancePage extends StatelessWidget {
                               delay: 200,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Expanded(
                             child: _RadialPerformanceGauge(
                               title: 'THROTTLE',
@@ -76,7 +77,8 @@ class PerformancePage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
+                    // Column 2: Intake Temp + MAP/Barometric
                     Expanded(
                       child: Column(
                         children: [
@@ -92,17 +94,50 @@ class PerformancePage extends StatelessWidget {
                               delay: 400,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Expanded(
                             child: _RadialPerformanceGauge(
-                              title: 'MAP PRESSURE',
-                              value: p.mapPressure.toDouble(),
-                              minValue: 0,
-                              maxValue: 150,
+                              title: 'BAROMETRIC',
+                              value: p.barometricPressure.toDouble(),
+                              minValue: 70,
+                              maxValue: 110,
                               unit: 'kPa',
                               startColor: AppTheme.alertAmber,
                               endColor: AppTheme.alertRed,
                               delay: 500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Column 3: Ignition Timing + Abs Engine Load
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: _RadialPerformanceGauge(
+                              title: 'IGN TIMING',
+                              value: p.ignitionTiming,
+                              minValue: -20,
+                              maxValue: 40,
+                              unit: '°',
+                              startColor: Colors.purpleAccent,
+                              endColor: Colors.pinkAccent,
+                              delay: 600,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: _RadialPerformanceGauge(
+                              title: 'ABS LOAD',
+                              value: p.absoluteEngineLoad.clamp(0, 100),
+                              minValue: 0,
+                              maxValue: 100,
+                              unit: '%',
+                              startColor: Colors.deepOrangeAccent,
+                              endColor: Colors.redAccent,
+                              delay: 700,
                             ),
                           ),
                         ],
@@ -208,13 +243,18 @@ class _RadialPerformanceGauge extends StatelessWidget {
                       widget: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            value.toInt().toString(),
-                            style: GoogleFonts.montserrat(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.textPrimary,
-                              letterSpacing: -1,
+                          TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOutCubic,
+                            tween: Tween<double>(begin: 0, end: value),
+                            builder: (context, val, _) => Text(
+                              val.toInt().toString(),
+                              style: GoogleFonts.montserrat(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.textPrimary,
+                                letterSpacing: -1,
+                              ),
                             ),
                           ),
                           Text(

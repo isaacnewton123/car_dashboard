@@ -5,6 +5,12 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Query all packages for App Launcher -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <!-- Bluetooth Classic for OBD-II ELM327 adapter -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:label="Car Dashboard"

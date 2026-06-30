@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../models/dtc_code.dart';
 import '../providers/dashboard_provider.dart';
+import '../services/obd_connection_state.dart';
 import '../theme/app_theme.dart';
 
 /// Diagnostics page — DTC codes, OBD log, connection status.
@@ -24,30 +25,32 @@ class DiagnosticsPage extends StatelessWidget {
           padding: const EdgeInsets.all(AppTheme.pagePadding),
           child: Row(
             children: [
-              // Left: Vital Signs
+              // Left: Vital Signs — scrollable grid
               Expanded(
                 flex: 5,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Row(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Row(
                         children: [
                           Expanded(
                             child: _DiagnosticDataCard(
-                              title: 'BATTERY VOLTAGE',
+                              title: 'ECU VOLTAGE',
                               value: '${p.batteryVoltage.toStringAsFixed(1)} V',
-                              subtitle: 'Control Module Voltage',
+                              subtitle: p.isLiveObd ? 'PID 0142' : 'Simulated',
                               icon: HugeIcons.strokeRoundedBatteryFull,
                               valueColor: AppTheme.textPrimary,
                               delay: 100,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: _DiagnosticDataCard(
                               title: 'ENGINE RUN TIME',
-                              value: _formatDuration(ert),
-                              subtitle: 'Time since ignition',
+                              value: p.isLiveObd
+                                  ? _formatSeconds(p.timeSinceEngineStart)
+                                  : _formatDuration(ert),
+                              subtitle: p.isLiveObd ? 'PID 011F' : 'Trip clock',
                               icon: HugeIcons.strokeRoundedTimer02,
                               valueColor: AppTheme.textPrimary,
                               delay: 200,
@@ -55,10 +58,8 @@ class DiagnosticsPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: _DiagnosticDataCard(
+                      const SizedBox(height: 12),
+                      _DiagnosticDataCard(
                         title: 'MIL STATUS',
                         value: milStatus ? 'ON (CHECK ENGINE)' : 'OFF (SYSTEM OK)',
                         subtitle: 'Malfunction Indicator Lamp',
@@ -66,8 +67,90 @@ class DiagnosticsPage extends StatelessWidget {
                         valueColor: milStatus ? AppTheme.alertRed : AppTheme.successGreen,
                         delay: 300,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _DiagnosticDataCard(
+                              title: 'CAT TEMP B1S1',
+                              value: '${p.catTempB1S1.toStringAsFixed(0)}°C',
+                              subtitle: 'Upstream catalyst',
+                              icon: HugeIcons.strokeRoundedThermometer,
+                              valueColor: p.catTempB1S1 > 800
+                                  ? AppTheme.alertRed
+                                  : AppTheme.textPrimary,
+                              delay: 400,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _DiagnosticDataCard(
+                              title: 'CAT TEMP B1S2',
+                              value: '${p.catTempB1S2.toStringAsFixed(0)}°C',
+                              subtitle: 'Downstream catalyst',
+                              icon: HugeIcons.strokeRoundedThermometer,
+                              valueColor: p.catTempB1S2 > 800
+                                  ? AppTheme.alertRed
+                                  : AppTheme.textPrimary,
+                              delay: 500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _DiagnosticDataCard(
+                              title: 'WARM-UPS',
+                              value: '${p.warmupsSinceReset}',
+                              subtitle: 'Since ECU reset',
+                              icon: HugeIcons.strokeRoundedRepeat,
+                              valueColor: AppTheme.textPrimary,
+                              delay: 600,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _DiagnosticDataCard(
+                              title: 'DIST SINCE RESET',
+                              value: '${p.distanceSinceReset} km',
+                              subtitle: 'Since ECU reset',
+                              icon: HugeIcons.strokeRoundedRoute01,
+                              valueColor: AppTheme.textPrimary,
+                              delay: 700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _DiagnosticDataCard(
+                              title: 'EVAP PURGE',
+                              value: '${p.commandedEvapPurge.toStringAsFixed(1)}%',
+                              subtitle: 'Commanded purge',
+                              icon: HugeIcons.strokeRoundedCloud,
+                              valueColor: AppTheme.textPrimary,
+                              delay: 800,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _DiagnosticDataCard(
+                              title: 'DTC CLEARED',
+                              value: _formatMinutes(p.timeSinceDtcCleared),
+                              subtitle: 'Time since cleared',
+                              icon: HugeIcons.strokeRoundedTime04,
+                              valueColor: AppTheme.textPrimary,
+                              delay: 900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -76,7 +159,11 @@ class DiagnosticsPage extends StatelessWidget {
                 flex: 5,
                 child: Column(
                   children: [
-                    _ConnectionCard(isConnected: p.isConnected),
+                    _ConnectionCard(
+                      isConnected: p.isConnected,
+                      isLiveObd: p.isLiveObd,
+                      obdStatus: p.obdStatus,
+                    ),
                     const SizedBox(height: 12),
                     Expanded(
                       flex: 3,
@@ -133,6 +220,23 @@ class DiagnosticsPage extends StatelessWidget {
     final String m = twoDigits(d.inMinutes.remainder(60));
     final String s = twoDigits(d.inSeconds.remainder(60));
     return "$h:$m:$s";
+  }
+
+  String _formatSeconds(int totalSeconds) {
+    final int h = totalSeconds ~/ 3600;
+    final int m = (totalSeconds % 3600) ~/ 60;
+    final int s = totalSeconds % 60;
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return '${twoDigits(h)}:${twoDigits(m)}:${twoDigits(s)}';
+  }
+
+  String _formatMinutes(int totalMinutes) {
+    if (totalMinutes < 60) return '${totalMinutes}m';
+    final int h = totalMinutes ~/ 60;
+    final int m = totalMinutes % 60;
+    if (h < 24) return '${h}h ${m}m';
+    final int d = h ~/ 24;
+    return '${d}d ${h % 24}h';
   }
 }
 
@@ -234,8 +338,39 @@ class _DiagnosticDataCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ConnectionCard extends StatelessWidget {
-  const _ConnectionCard({required this.isConnected});
+  const _ConnectionCard({
+    required this.isConnected,
+    this.isLiveObd = false,
+    this.obdStatus = ObdConnectionStatus.disconnected,
+  });
   final bool isConnected;
+  final bool isLiveObd;
+  final ObdConnectionStatus obdStatus;
+
+  Color _statusDotColor() {
+    if (isLiveObd) return AppTheme.successGreen;
+    if (obdStatus == ObdConnectionStatus.connecting ||
+        obdStatus == ObdConnectionStatus.initializing ||
+        obdStatus == ObdConnectionStatus.scanning) {
+      return AppTheme.alertAmber;
+    }
+    if (isConnected) return AppTheme.accentCyan;
+    return AppTheme.alertRed;
+  }
+
+  String _statusTitle() {
+    if (isLiveObd) return 'OBD-II Connected (LIVE)';
+    if (obdStatus.isActive) return obdStatus.label;
+    if (isConnected) return 'Connected (Simulated)';
+    return 'Disconnected';
+  }
+
+  String _statusSubtitle() {
+    if (isLiveObd) return 'ELM327 • Bluetooth Classic • OBDII';
+    if (obdStatus.isActive) return 'Establishing connection...';
+    if (isConnected) return 'Mock data • No OBD adapter';
+    return 'No OBD-II device detected';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -253,15 +388,10 @@ class _ConnectionCard extends StatelessWidget {
             height: 10,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isConnected
-                  ? AppTheme.successGreen
-                  : AppTheme.alertRed,
+              color: _statusDotColor(),
               boxShadow: [
                 BoxShadow(
-                  color: (isConnected
-                          ? AppTheme.successGreen
-                          : AppTheme.alertRed)
-                      .withValues(alpha: 0.5),
+                  color: _statusDotColor().withValues(alpha: 0.5),
                   blurRadius: 6,
                 ),
               ],
@@ -273,7 +403,7 @@ class _ConnectionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isConnected ? 'Connected (Mock)' : 'Disconnected',
+                  _statusTitle(),
                   style: GoogleFonts.montserrat(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -281,9 +411,7 @@ class _ConnectionCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  isConnected
-                      ? 'ELM327 v2.1 • USB • 38400 baud'
-                      : 'No OBD-II device detected',
+                  _statusSubtitle(),
                   style: GoogleFonts.montserrat(
                     fontSize: 10,
                     color: AppTheme.textSecondary,
@@ -292,6 +420,23 @@ class _ConnectionCard extends StatelessWidget {
               ],
             ),
           ),
+          if (isLiveObd)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppTheme.successGreen.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'LIVE',
+                style: GoogleFonts.montserrat(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.successGreen,
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
         ],
       ),
     ).animate().fadeIn(duration: 400.ms);

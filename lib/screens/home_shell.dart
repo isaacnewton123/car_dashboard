@@ -689,7 +689,7 @@ class _VolumeModalContentState extends State<_VolumeModalContent> {
                             inactiveColor: AppTheme.textSecondary.withValues(alpha: 0.2),
                             onChangeStart: (_) => _hideTimer?.cancel(),
                             onChanged: (val) {
-                              prov.setVolume(val.toInt());
+                              prov.setVolume(val);
                             },
                             onChangeEnd: (_) => _resetHideTimer(),
                           ),

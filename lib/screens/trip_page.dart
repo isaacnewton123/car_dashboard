@@ -46,6 +46,7 @@ class TripPage extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
+                    // Column 1: Fuel Rate + O2 Sensor
                     Expanded(
                       child: Column(
                         children: [
@@ -58,7 +59,7 @@ class TripPage extends StatelessWidget {
                               icon: HugeIcons.strokeRoundedDroplet,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Expanded(
                             child: _DigitalDataCard(
                               title: 'O2 SENSOR',
@@ -72,21 +73,22 @@ class TripPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
+                    // Column 2: Short FT + Trip Meter
                     Expanded(
                       child: Column(
                         children: [
                           Expanded(
                             child: _DigitalDataCard(
-                              title: 'FUEL TRIM',
-                              value: p.fuelTrim,
+                              title: 'SHORT FT',
+                              value: p.shortTermFuelTrim,
                               unit: '%',
                               delay: 400,
                               fractionDigits: 1,
                               icon: HugeIcons.strokeRoundedSettings01,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Expanded(
                             child: _DigitalDataCard(
                               title: 'TRIP METER',
@@ -94,6 +96,35 @@ class TripPage extends StatelessWidget {
                               unit: 'km',
                               delay: 500,
                               icon: HugeIcons.strokeRoundedCar01,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Column 3: MAF + Lambda/Equiv Ratio
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: _DigitalDataCard(
+                              title: 'MAF FLOW',
+                              value: p.mafAirFlow,
+                              unit: 'g/s',
+                              delay: 600,
+                              fractionDigits: 1,
+                              icon: HugeIcons.strokeRoundedDashboardSpeed02,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: _DigitalDataCard(
+                              title: 'LONG FT',
+                              value: p.longTermFuelTrim,
+                              unit: '%',
+                              delay: 700,
+                              fractionDigits: 1,
+                              icon: HugeIcons.strokeRoundedAnalytics01,
                             ),
                           ),
                         ],
@@ -168,13 +199,18 @@ class _DigitalDataCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    value.toStringAsFixed(fractionDigits),
-                    style: GoogleFonts.montserrat(
-                      fontSize: 56,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
-                      letterSpacing: -1.5,
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    tween: Tween<double>(begin: 0, end: value),
+                    builder: (context, val, _) => Text(
+                      val.toStringAsFixed(fractionDigits),
+                      style: GoogleFonts.montserrat(
+                        fontSize: 56,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                        letterSpacing: -1.5,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 4),

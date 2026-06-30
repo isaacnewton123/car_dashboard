@@ -61,12 +61,10 @@ class DashboardPage extends StatelessWidget {
                                       ).animate().fadeIn(duration: 600.ms, delay: 100.ms),
                                       const SizedBox(height: 12),
                                       _InfoCard(
-                                        hugeIcon: HugeIcons.strokeRoundedFuelStation,
-                                        label: 'FUEL',
-                                        value: '${p.fuelLevel}%',
-                                        valueColor: p.fuelLevel < 20
-                                            ? AppTheme.alertRed
-                                            : AppTheme.successGreen,
+                                        materialIcon: Icons.bolt_rounded,
+                                        label: 'TIMING',
+                                        value: '${p.ignitionTiming.toStringAsFixed(1)}°',
+                                        valueColor: AppTheme.successGreen,
                                       ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
                                       const SizedBox(height: 12),
                                       _InfoCard(
@@ -187,18 +185,23 @@ class DashboardPage extends StatelessWidget {
                                             const SizedBox(height: 4),
                                             ClipRRect(
                                               borderRadius: BorderRadius.circular(4),
-                                              child: LinearProgressIndicator(
-                                                value: p.engineLoad / 100.0,
-                                                minHeight: 5,
-                                                backgroundColor:
-                                                    AppTheme.surfaceLight,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<Color>(
-                                                  p.engineLoad > 80
-                                                      ? AppTheme.alertRed
-                                                      : p.engineLoad > 50
-                                                          ? AppTheme.alertAmber
-                                                          : AppTheme.accentCyan,
+                                              child: TweenAnimationBuilder<double>(
+                                                duration: const Duration(milliseconds: 300),
+                                                curve: Curves.easeOutCubic,
+                                                tween: Tween<double>(begin: 0, end: p.engineLoad / 100.0),
+                                                builder: (context, value, _) => LinearProgressIndicator(
+                                                  value: value,
+                                                  minHeight: 5,
+                                                  backgroundColor:
+                                                      AppTheme.surfaceLight,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<Color>(
+                                                    p.engineLoad > 80
+                                                        ? AppTheme.alertRed
+                                                        : p.engineLoad > 50
+                                                            ? AppTheme.alertAmber
+                                                            : AppTheme.accentCyan,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -241,8 +244,8 @@ class DashboardPage extends StatelessWidget {
                                       const SizedBox(height: 12),
                                       _InfoCard(
                                         materialIcon: Icons.compress_rounded,
-                                        label: 'MAP',
-                                        value: '${p.mapPressure} kPa',
+                                        label: 'BARO',
+                                        value: '${p.barometricPressure} kPa',
                                         valueColor: AppTheme.accentCyan,
                                       ).animate().fadeIn(duration: 600.ms, delay: 300.ms),
                                     ],
@@ -493,7 +496,8 @@ class _RpmGauge extends StatelessWidget {
       axes: <RadialAxis>[
         RadialAxis(
           minimum: 0,
-          maximum: 8,
+          maximum: 8000,
+          interval: 1000,
           startAngle: 140,
           endAngle: 40,
           showLabels: true,
@@ -522,7 +526,9 @@ class _RpmGauge extends StatelessWidget {
           ),
           pointers: <GaugePointer>[
             RangePointer(
-              value: rpm / 1000.0,
+              value: rpm.toDouble(),
+              enableAnimation: true,
+              animationDuration: 300,
               width: 0.1,
               sizeUnit: GaugeSizeUnit.factor,
               gradient: const SweepGradient(
@@ -543,18 +549,23 @@ class _RpmGauge extends StatelessWidget {
               widget: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    (rpm / 1000.0).toStringAsFixed(1),
-                    style: GoogleFonts.montserrat(
-                      fontSize: 48,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white,
-                      height: 1.0,
-                      letterSpacing: -2,
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    tween: Tween<double>(begin: 0, end: rpm.toDouble()),
+                    builder: (context, val, _) => Text(
+                      val.toInt().toString(),
+                      style: GoogleFonts.montserrat(
+                        fontSize: 48,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.white,
+                        height: 1.0,
+                        letterSpacing: -2,
+                      ),
                     ),
                   ),
                   Text(
-                    'RPM x1000',
+                    'RPM',
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -621,6 +632,8 @@ class _SpeedGauge extends StatelessWidget {
           pointers: <GaugePointer>[
             RangePointer(
               value: speed.toDouble(),
+              enableAnimation: true,
+              animationDuration: 300,
               width: 0.1,
               sizeUnit: GaugeSizeUnit.factor,
               gradient: const SweepGradient(
@@ -641,14 +654,19 @@ class _SpeedGauge extends StatelessWidget {
               widget: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    speed.toString(),
-                    style: GoogleFonts.montserrat(
-                      fontSize: 48,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white,
-                      height: 1.0,
-                      letterSpacing: -2,
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    tween: Tween<double>(begin: 0, end: speed.toDouble()),
+                    builder: (context, val, _) => Text(
+                      val.toInt().toString(),
+                      style: GoogleFonts.montserrat(
+                        fontSize: 48,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.white,
+                        height: 1.0,
+                        letterSpacing: -2,
+                      ),
                     ),
                   ),
                   Text(
