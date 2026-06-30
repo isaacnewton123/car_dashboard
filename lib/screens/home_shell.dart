@@ -14,7 +14,6 @@ import 'app_launcher_page.dart';
 import 'assistant_page.dart';
 import 'dashboard_page.dart';
 import 'diagnostics_page.dart';
-import 'media_page.dart';
 import 'performance_page.dart';
 import 'settings_page.dart';
 import 'trip_page.dart';
@@ -63,22 +62,24 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   int _toPageViewIndex(int navIndex) {
-    if (navIndex < 6) return navIndex;
-    if (navIndex == 7) return 6;
+    final appsIndex = NavPage.values.indexOf(NavPage.appLauncher);
+    if (navIndex < appsIndex) return navIndex;
+    if (navIndex > appsIndex) return navIndex - 1;
     return 0; // Fallback
   }
 
   void _setPage(int navIndex) {
     if (_currentIndex == navIndex) return;
     
-    final wasApps = _currentIndex == 6;
+    final appsIndex = NavPage.values.indexOf(NavPage.appLauncher);
+    final wasApps = _currentIndex == appsIndex;
     if (!wasApps) {
       _lastMainPageIndex = _currentIndex;
     }
 
     setState(() => _currentIndex = navIndex);
 
-    if (navIndex != 6) {
+    if (navIndex != appsIndex) {
       if (wasApps) {
         _pageController.jumpToPage(_toPageViewIndex(navIndex));
       } else {
@@ -93,20 +94,22 @@ class _HomeShellState extends State<HomeShell> {
 
   void _nextPage() {
     int next = _currentIndex + 1;
-    if (next == 6) next = 7;
-    if (next > 7) next = 0;
+    final appsIndex = NavPage.values.indexOf(NavPage.appLauncher);
+    if (next == appsIndex) next = appsIndex + 1;
+    if (next >= NavPage.values.length) next = 0;
     _setPage(next);
   }
 
   void _previousPage() {
     int prev = _currentIndex - 1;
-    if (prev == 6) prev = 5;
-    if (prev < 0) prev = 7;
+    final appsIndex = NavPage.values.indexOf(NavPage.appLauncher);
+    if (prev == appsIndex) prev = appsIndex - 1;
+    if (prev < 0) prev = NavPage.values.length - 1;
     _setPage(prev);
   }
 
   void _showApps() {
-    _setPage(6);
+    _setPage(NavPage.values.indexOf(NavPage.appLauncher));
   }
 
   void _showNavbar() {
@@ -131,7 +134,6 @@ class _HomeShellState extends State<HomeShell> {
   static const List<Widget> _mainPages = [
     DashboardPage(),
     AssistantPage(),
-    MediaPage(),
     TripPage(),
     PerformancePage(),
     DiagnosticsPage(),
@@ -181,7 +183,7 @@ class _HomeShellState extends State<HomeShell> {
                 // Vertical
                 if (dy > 0) {
                   // Swiped down
-                  if (_currentIndex == 6) {
+                  if (_currentIndex == NavPage.values.indexOf(NavPage.appLauncher)) {
                     _setPage(_lastMainPageIndex); // Close apps
                   } else {
                     _showNavbar(); // Show navbar if on normal page
@@ -215,7 +217,7 @@ class _HomeShellState extends State<HomeShell> {
               child: AnimatedSlide(
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeOutCubic,
-                offset: _currentIndex == 6 ? Offset.zero : const Offset(0, 1.2),
+                offset: _currentIndex == NavPage.values.indexOf(NavPage.appLauncher) ? Offset.zero : const Offset(0, 1.2),
                 child: const AppLauncherPage(),
               ),
             ),
@@ -285,7 +287,7 @@ class _TeslaDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<NavPage> leftPages = [NavPage.assistant, NavPage.media, NavPage.trip];
+    final List<NavPage> leftPages = [NavPage.assistant, NavPage.trip];
     final List<NavPage> rightPages = [NavPage.performance, NavPage.diagnostics, NavPage.settings];
     final int launcherIndex = NavPage.values.indexOf(NavPage.appLauncher);
 
@@ -511,8 +513,6 @@ class _DockNavIcon extends StatelessWidget {
         return AppTheme.textPrimary;
       case NavPage.assistant:
         return AppTheme.accentCyan;
-      case NavPage.media:
-        return const Color(0xFF1DB954); // Spotify green
       case NavPage.diagnostics:
         return AppTheme.alertAmber;
       case NavPage.settings:

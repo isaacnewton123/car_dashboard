@@ -41,6 +41,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # Workaround: objective_c >= 9.2.0 uses native asset build hooks that fail
 # on Windows when the project or SDK path contains spaces. Pinning to 9.1.0
@@ -54,3 +55,8 @@ flutter:
     - assets/img/
     - assets/images/
     - assets/sound/
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/img/sigra.png"
+  min_sdk_android: 21

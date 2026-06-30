@@ -7,7 +7,6 @@ import 'package:hugeicons/hugeicons.dart';
 enum NavPage {
   dashboard(icon: HugeIcons.strokeRoundedDashboardCircle, label: 'Dashboard'),
   assistant(icon: HugeIcons.strokeRoundedMic01, label: 'Assistant'),
-  media(icon: HugeIcons.strokeRoundedMusicNote01, label: 'Media'),
   trip(icon: HugeIcons.strokeRoundedAnalytics01, label: 'Trip'),
   performance(icon: HugeIcons.strokeRoundedRocket01, label: 'Performance'),
   diagnostics(icon: HugeIcons.strokeRoundedWrench01, label: 'Diagnostics'),
