@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_classic_bluetooth/flutter_classic_bluetooth.dart';
+import '../services/bluetooth_classic_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -306,7 +306,7 @@ class _ObdConnectionCard extends StatefulWidget {
 
 class _ObdConnectionCardState extends State<_ObdConnectionCard> {
   bool _isLoading = false;
-  List<BtcDevice> _devices = [];
+  List<BluetoothDeviceInfo> _devices = [];
 
   Color _statusColor(ObdConnectionStatus status) {
     switch (status) {
@@ -335,7 +335,7 @@ class _ObdConnectionCardState extends State<_ObdConnectionCard> {
     if (mounted) setState(() => _isLoading = false);
   }
 
-  Future<void> _connectToDevice(BtcDevice device) async {
+  Future<void> _connectToDevice(BluetoothDeviceInfo device) async {
     setState(() => _isLoading = true);
     await widget.provider.connectObdToDevice(device);
     if (mounted) setState(() => _isLoading = false);
@@ -466,7 +466,7 @@ class _ObdConnectionCardState extends State<_ObdConnectionCard> {
               ),
             ),
             const SizedBox(height: 8),
-            ..._devices.map((BtcDevice device) {
+            ..._devices.map((BluetoothDeviceInfo device) {
               return InkWell(
                 onTap: () => _connectToDevice(device),
                 child: Padding(
@@ -477,7 +477,7 @@ class _ObdConnectionCardState extends State<_ObdConnectionCard> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          device.displayName.isNotEmpty ? device.displayName : device.address,
+                          device.displayName,
                           style: GoogleFonts.montserrat(
                             fontSize: 12,
                             color: AppTheme.textPrimary,

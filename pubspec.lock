@@ -190,14 +190,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.2"
-  flutter_classic_bluetooth:
-    dependency: "direct main"
-    description:
-      name: flutter_classic_bluetooth
-      sha256: "60a5362ad44c2f13c423bffa4f1142c3be754947cb120158e609f826128da7e5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.2"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:

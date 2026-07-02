@@ -544,4 +544,22 @@ class ObdPids {
 
   static final List<ObdPid> periodicPulls =
       all.where((p) => p.pollingInterval != null).toList();
+
+  /// Critical PIDs polled every cycle for real-time responsiveness (~100-200ms).
+  static final List<ObdPid> criticalPids = <ObdPid>[engineRpm, vehicleSpeed];
+
+  /// Normal periodic PIDs, deduplicated by command string.
+  ///
+  /// Only one representative PID per unique command is included.
+  /// When polled, all sibling PIDs sharing the same command are parsed
+  /// from the single response by [ObdService._pollPidGroup].
+  static final List<ObdPid> normalPeriodicUniqueCommands = () {
+    final Set<String> seenCommands = <String>{};
+    final Set<String> criticalCommands =
+        criticalPids.map((ObdPid p) => p.command).toSet();
+    return periodicPulls
+        .where((ObdPid p) => !criticalCommands.contains(p.command))
+        .where((ObdPid p) => seenCommands.add(p.command))
+        .toList();
+  }();
 }

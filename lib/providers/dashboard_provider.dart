@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_classic_bluetooth/flutter_classic_bluetooth.dart';
+import '../services/bluetooth_classic_service.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,6 +49,7 @@ class DashboardProvider extends ChangeNotifier {
     _obdService = ObdService(
       onPidValue: _onPidValue,
       onStatusChange: _onObdStatusChange,
+      onBatchComplete: _onBatchComplete,
       onLog: _onObdLog,
     );
 
@@ -77,7 +78,7 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   /// Connect to a specific Bluetooth device.
-  Future<bool> connectObdToDevice(BtcDevice device) async {
+  Future<bool> connectObdToDevice(BluetoothDeviceInfo device) async {
     return _obdService.connect(device);
   }
 
@@ -87,7 +88,7 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   /// Discover paired Bluetooth devices.
-  Future<List<BtcDevice>> discoverObdDevices() async {
+  Future<List<BluetoothDeviceInfo>> discoverObdDevices() async {
     return _obdService.discoverDevices();
   }
 
@@ -206,7 +207,11 @@ class DashboardProvider extends ChangeNotifier {
     _updateTripData();
     _updatePerformanceTracking();
     _updatePerformanceMetrics();
+  }
 
+  /// Called by [ObdService] after each polling batch (critical + one normal).
+  /// Coalesces UI rebuilds instead of rebuilding per-PID.
+  void _onBatchComplete() {
     notifyListeners();
   }
 

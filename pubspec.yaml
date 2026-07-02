@@ -34,7 +34,7 @@ dependencies:
   hugeicons: any
   installed_apps: ^2.1.1
   audioplayers: ^6.8.1
-  flutter_classic_bluetooth: ^0.1.2
+  # Bluetooth Classic: custom native platform channel (no library needed)
 
 dev_dependencies:
   flutter_test:
